@@ -1,135 +1,109 @@
-# Turborepo starter
+# 🌟 Sonpari
 
-This Turborepo starter is maintained by the Turborepo core team.
+**Sonpari** is a social gold savings app that helps families and friends save small amounts of gold daily, build saving streaks, and gift gold on birthdays, festivals, and special occasions.
 
-## Using this example
+Gold is deeply emotional — Sonpari makes it **habit-forming and accessible**.
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
-```
+## ✨ Why Sonpari?
 
-## What's inside?
+Gold is traditionally gifted during festivals, weddings, and milestones.  
+But buying gold all at once can be financially difficult, and offline stores make it impractical to buy very small amounts frequently.
 
-This Turborepo includes the following packages/apps:
+Sonpari solves this by:
+- Enabling **micro-saving in gold**
+- Encouraging **daily or weekly saving habits**
+- Making gold **easy to gift digitally**
+- Removing the friction of offline gold purchases
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## 🧠 How It Works
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+1. **Create a Group**  
+   Form family or friend groups to save together.
 
-### Utilities
+2. **Save Gold Regularly**  
+   Save small amounts of gold daily or weekly.
 
-This Turborepo has some additional tools already setup for you:
+3. **Build Streaks**  
+   Streaks encourage consistency and habit formation.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+4. **Gift Gold**  
+   Gift accumulated gold on birthdays, festivals, or special occasions.
 
-### Build
+---
 
-To build all apps and packages, run the following command:
+## 🎯 Use Cases
 
-```
-cd my-turborepo
+- 👨‍👩‍👧 Family gold savings
+- 🎉 Festival gifting (Diwali, weddings, birthdays)
+- 👥 Friend group saving challenges
+- 🐷 Habit-based gold piggy banks
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+## 🔐 Security & Compliance
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Sonpari is designed with strong security and compliance principles, powered by **Oro’s GRAIL API**:
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+- User KYC handled off-chain by the distribution partner
+- Transparent on-chain gold minting and transfers
+- Secure vault-based asset protection
+- Audit-friendly transaction trails
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+---
 
-### Develop
+## 🛠️ Tech Stack
 
-To develop all apps and packages, run the following command:
+- **Frontend:** Next.js, TypeScript, Tailwind CSS  
+- **Backend:** Node.js  
+- **Blockchain:** Solana  
+- **Gold Infrastructure:** Oro GRAIL API  
 
-```
-cd my-turborepo
+> Crypto complexity is fully abstracted — Sonpari is built for non-crypto users.
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+## 🚧 Project Status
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+🧪 **MVP in progress**
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Planned features:
+- Group creation & management
+- Gold saving & balance tracking
+- Streak logic
+- Gold gifting flows
+- Waitlist onboarding
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+---
 
-### Remote Caching
+## 🧩 Roadmap
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+- [ ] Core gold saving & gifting flows  
+- [ ] Streak-based habit system  
+- [ ] Group goals & milestones  
+- [ ] Public beta launch  
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+---
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## 👋 Contributing
 
-```
-cd my-turborepo
+Contributions, ideas, and feedback are welcome.  
+If you’re interested in consumer fintech, Web3 UX, or habit-forming products — feel free to reach out.
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+## 📬 Contact
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+**Pratik Kale**  
+Founder, Sonpari  
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+- X (Twitter): https://x.com/pratikkale26  
+- GitHub: https://github.com/Pratikkale26  
+- Telegram: https://t.me/Pratikkale26  
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+> *Sonpari turns everyday savings into meaningful gold gifts.*
