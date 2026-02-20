@@ -1,0 +1,120 @@
+import { Router } from "express";
+import type { Request, Response } from "express";
+import { authMiddleware } from "../middlewares/authMiddleware";
+import { prisma } from "db/client";
+import { purchaseGoldForUser, signAndSubmit } from "../oroApi";
+import { Connection, clusterApiUrl } from "@solana/web3.js";
+
+const router = Router();
+
+const STREAK_RESET_HOURS = 36;
+
+async function updateStreak(userId: string) {
+    const now = new Date();
+    const streak = await prisma.streak.findUnique({ where: { userId } });
+
+    if (!streak) {
+        await prisma.streak.create({ data: { userId, currentStreak: 1, longestStreak: 1, lastSaveDate: now } });
+        await prisma.user.update({ where: { id: userId }, data: { streakCount: 1, lastSaveDate: now } });
+        return;
+    }
+
+    const hoursSinceLast = streak.lastSaveDate
+        ? (now.getTime() - streak.lastSaveDate.getTime()) / (1000 * 60 * 60)
+        : 999;
+
+    const newCurrent = hoursSinceLast <= STREAK_RESET_HOURS ? streak.currentStreak + 1 : 1;
+    const newLongest = Math.max(newCurrent, streak.longestStreak);
+
+    await prisma.streak.update({
+        where: { userId },
+        data: { currentStreak: newCurrent, longestStreak: newLongest, lastSaveDate: now },
+    });
+    await prisma.user.update({ where: { id: userId }, data: { streakCount: newCurrent, lastSaveDate: now } });
+}
+
+// GET /api/gold/price
+router.get("/price", authMiddleware, async (_req: Request, res: Response) => {
+    // Approximate: 1g gold ≈ $74 USDC, $1 = ₹83
+    const usdcPerGram = 74;
+    const inrPerGram = usdcPerGram * 83;
+    return res.json({ usdcPerGram, inrPerGram, currency: "USDC" });
+});
+
+// POST /api/gold/buy
+// Body: { goldGrams: number, paymentTxSignature: string }
+// Flow: Verify USDC payment to parent wallet → call Oro buy → sign + submit → record + streak
+router.post("/buy", authMiddleware, async (req: Request, res: Response) => {
+    try {
+        const userId = req.id!;
+        const { goldGrams, paymentTxSignature } = req.body;
+
+        if (!goldGrams || Number(goldGrams) <= 0) {
+            return res.status(400).json({ message: "Invalid gold amount" });
+        }
+        if (!paymentTxSignature) {
+            return res.status(400).json({ message: "Payment transaction signature required" });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user?.grailUserId) {
+            return res.status(400).json({ message: "Please activate your Oro account first" });
+        }
+
+        // Verify Solana payment
+        const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+        const txInfo = await connection.getTransaction(paymentTxSignature, {
+            commitment: "confirmed",
+            maxSupportedTransactionVersion: 0,
+        });
+        if (!txInfo || txInfo.meta?.err) {
+            return res.status(400).json({ message: "Payment transaction not confirmed or failed on Solana" });
+        }
+
+        // Purchase via Oro
+        const purchaseData = await purchaseGoldForUser(user.grailUserId, Number(goldGrams));
+        const txResult = await signAndSubmit(purchaseData.transaction.serializedTx);
+
+        // Save record
+        await prisma.savingsTransaction.create({
+            data: {
+                userId,
+                grailTxnId: txResult.txId,
+                goldGrams: Number(goldGrams),
+                goldPriceAtTxn: purchaseData.quotedGoldPrice,
+                type: "SAVE",
+            },
+        });
+
+        // Update streak
+        await updateStreak(userId);
+
+        return res.json({
+            message: "Gold purchased successfully! 🎉",
+            txId: txResult.txId,
+            goldGrams: purchaseData.goldAmount,
+            quotedPrice: purchaseData.quotedGoldPrice,
+            quoteUsdc: purchaseData.quoteUsdcAmount,
+        });
+    } catch (err: any) {
+        console.error("buy error:", err?.response?.data || err.message);
+        return res.status(500).json({ message: err?.response?.data?.message || "Failed to purchase gold" });
+    }
+});
+
+// GET /api/gold/history — Transaction history for current user
+router.get("/history", authMiddleware, async (req: Request, res: Response) => {
+    try {
+        const userId = req.id!;
+        const transactions = await prisma.savingsTransaction.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            take: 50,
+        });
+        return res.json({ transactions });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch history" });
+    }
+});
+
+export { router as goldRouter };
