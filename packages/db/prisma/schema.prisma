@@ -17,7 +17,7 @@ enum KycStatus {
 }
 
 enum GroupRole {
-  HEAD
+  ADMIN
   MEMBER
 }
 
@@ -39,6 +39,11 @@ enum ContributionStatus {
   FAILED
 }
 
+enum ProposalStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id       String  @id @default(cuid())
   email    String  @unique
@@ -48,8 +53,8 @@ model User {
 
   kycStatus    KycStatus @default(PENDING)
   kycHash      String?
-  grailUserId  String?
-  solanaWallet String?
+  grailUserId  String? // Oro user PDA address
+  solanaWallet String? // Connected wallet address
 
   streakCount  Int       @default(0)
   lastSaveDate DateTime?
@@ -57,14 +62,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  kycData           KycData?
-  groupsHeaded      Group[]              @relation("GroupHead")
-  groupMemberships  GroupMember[]
-  savings           SavingsTransaction[]
-  giftsSent         Gift[]               @relation("GiftSender")
-  giftsReceived     Gift[]               @relation("GiftRecipient")
-  giftContributions GiftContribution[]
-  streak            Streak?
+  kycData               KycData?
+  groupMemberships      GroupMember[]
+  savings               SavingsTransaction[]
+  giftsSent             Gift[]                 @relation("GiftSender")
+  giftsReceived         Gift[]                 @relation("GiftRecipient")
+  giftContributions     GiftContribution[]
+  streak                Streak?
+  proposalContributions ProposalContribution[]
 }
 
 model KycData {
@@ -82,14 +87,13 @@ model Group {
   id          String  @id @default(cuid())
   name        String
   description String?
-  headUserId  String
-  headUser    User    @relation("GroupHead", fields: [headUserId], references: [id])
   inviteCode  String  @unique
 
   createdAt DateTime @default(now())
 
-  members GroupMember[]
-  gifts   Gift[]
+  members   GroupMember[]
+  gifts     Gift[]
+  proposals GroupProposal[]
 }
 
 model GroupMember {
@@ -103,12 +107,41 @@ model GroupMember {
   @@id([groupId, userId])
 }
 
+model GroupProposal {
+  id        String         @id @default(cuid())
+  groupId   String
+  group     Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy String
+  occasion  String?
+  message   String?
+  deadline  DateTime?
+  status    ProposalStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contributions ProposalContribution[]
+}
+
+model ProposalContribution {
+  id         String             @id @default(cuid())
+  proposalId String
+  proposal   GroupProposal      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+  goldGrams  Decimal
+  grailTxnId String?
+  status     ContributionStatus @default(PLEDGED)
+  paidAt     DateTime?
+
+  createdAt DateTime @default(now())
+}
+
 model SavingsTransaction {
   id             String          @id @default(cuid())
   userId         String
   user           User            @relation(fields: [userId], references: [id])
   grailTxnId     String?
-  amountInr      Decimal
   goldGrams      Decimal
   goldPriceAtTxn Decimal
   type           TransactionType
@@ -140,7 +173,6 @@ model GiftContribution {
   gift              Gift               @relation(fields: [giftId], references: [id], onDelete: Cascade)
   contributorUserId String
   contributorUser   User               @relation(fields: [contributorUserId], references: [id])
-  amountInr         Decimal
   goldGrams         Decimal
   grailTxnId        String?
   status            ContributionStatus @default(PLEDGED)
