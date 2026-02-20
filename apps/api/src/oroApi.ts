@@ -4,7 +4,7 @@ import { PublicKey, Transaction, Keypair, Connection, clusterApiUrl } from '@sol
 import bs58 from 'bs58';
 
 const ORO_BASE_URL = process.env.ORO_API_URL || 'https://oro-tradebook-devnet.up.railway.app/api';
-const ORO_API_KEY = process.env.ORO_API_KEY || '';
+const ORO_API_KEY = process.env.ORO_API_KEY!;
 
 const oroClient = axios.create({
   baseURL: ORO_BASE_URL,
@@ -51,7 +51,7 @@ export async function createOroUser(kycHash: string) {
     userId: string;
     userPda: string;
     kycHash: string;
-    transaction: string; // base64 serializedTx
+    transaction: { serializedTx: string };
   };
 }
 
