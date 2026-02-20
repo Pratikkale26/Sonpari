@@ -6,6 +6,11 @@ import { prisma } from "db/client";
 
 const router = Router();
 
+//create user pda on oro
+router.post("/create-user", async (req: Request, res: Response) => {
+  
+})
+
 router.post("/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
