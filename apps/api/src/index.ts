@@ -9,7 +9,7 @@ app.use(express.json({ limit: "10mb" }));
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://sonpari-web-kvhc.vercel.app",
+    "https://sonpari-web.vercel.app",
     process.env.CORS_ORIGIN
 ].filter(Boolean) as string[];
 
