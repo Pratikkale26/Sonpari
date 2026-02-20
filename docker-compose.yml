@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      - DATABASE_URL=${DATABASE_URL}
+      # Auth
+      - JWT_SECRET=${JWT_SECRET}
+      # Oro API Config
+      - ORO_API_URL=${ORO_API_URL}
+      - ORO_API_KEY=${ORO_API_KEY}
+      - ORO_EXECUTION_PRIVATE_KEY=${ORO_EXECUTION_PRIVATE_KEY}
+    restart: always
+
+# Optional: Add a postgres service if you want to run DB locally via docker
+#   db:
+#     image: postgres:15-alpine
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: password
+#       POSTGRES_DB: sonpari
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
