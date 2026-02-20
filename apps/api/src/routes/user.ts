@@ -33,10 +33,13 @@ router.post("/signup", async (req, res) => {
       },
     });
 
-    res.status(200).json({ message: "Signed up successfully!" });
+    return res.status(200).json({ message: "Signed up successfully!" });
   } catch (err) {
     console.error("Signup error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+    return;
   }
 })
 
@@ -71,16 +74,17 @@ router.post("/signin", async (req, res) => {
       id: user.id
     }, process.env.JWT_SECRET!);
 
-    res.json({
+    res.status(200).json({
+      message: "Signed in successfully!",
       token: token,
     });
-
-    res.status(200).json({ message: "Signed in successfully!" });
     return;
 
   } catch (err) {
     console.error("Signin error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Internal server error" });
+    }
     return;
   }
 })
