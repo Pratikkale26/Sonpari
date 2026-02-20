@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createHash } from 'crypto';
-import { PublicKey, Transaction, Keypair, Connection, clusterApiUrl } from '@solana/web3.js';
+import { PublicKey, Transaction, VersionedTransaction, Keypair, Connection, clusterApiUrl } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 const ORO_BASE_URL = process.env.ORO_API_URL || 'https://oro-tradebook-devnet.up.railway.app/api';
@@ -27,19 +27,35 @@ export function generateKycHash(kycData: Record<string, string>): string {
 function getExecutionKeypair(): Keypair {
   const privateKeyBase58 = process.env.ORO_EXECUTION_PRIVATE_KEY;
   if (!privateKeyBase58) throw new Error('ORO_EXECUTION_PRIVATE_KEY is not set');
-  const secretKey = bs58.decode(privateKeyBase58);
-  return Keypair.fromSecretKey(secretKey);
+
+  try {
+    const secretKey = bs58.decode(privateKeyBase58.trim());
+    return Keypair.fromSecretKey(secretKey);
+  } catch (error: any) {
+    console.error("Failed to decode ORO_EXECUTION_PRIVATE_KEY:", error.message);
+    throw new Error("Invalid ORO_EXECUTION_PRIVATE_KEY. Ensure it is a valid base58 string without quotes or spaces.");
+  }
 }
 
 /**
  * Deserializes a base64 transaction, signs it with our execution keypair, and re-serializes to base64.
+ * Handles both legacy Transaction and modern VersionedTransaction (V0).
  */
 export function signSerializedTransaction(serializedTxBase64: string): string {
   const keypair = getExecutionKeypair();
   const txBytes = Buffer.from(serializedTxBase64, 'base64');
-  const tx = Transaction.from(txBytes);
-  tx.partialSign(keypair);
-  return tx.serialize({ requireAllSignatures: false }).toString('base64');
+
+  try {
+    // Attempt to deserialize as a Versioned Transaction (V0), which is the new standard
+    const tx = VersionedTransaction.deserialize(new Uint8Array(txBytes));
+    tx.sign([keypair]);
+    return Buffer.from(tx.serialize()).toString('base64');
+  } catch (err) {
+    // Fallback to legacy transaction if Versioned deserialization fails
+    const tx = Transaction.from(txBytes);
+    tx.partialSign(keypair);
+    return tx.serialize({ requireAllSignatures: false }).toString('base64');
+  }
 }
 
 
