@@ -41,7 +41,6 @@ router.post("/create-oro", authMiddleware, async (req, res) => {
     const oroMsg = err?.response?.data?.message || err?.response?.data?.error;
     const msg = oroMsg || err?.message || "Failed to create Oro account";
     console.error("create-oro error:", err?.response?.data || err?.message);
-    console.log(err)
     return res.status(500).json({ message: msg });
   }
 });
