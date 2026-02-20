@@ -1,14 +1,16 @@
 import "dotenv/config";
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from './generated/prisma/client'
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from './generated/prisma/client';
 
-const connectionString = `${process.env.DATABASE_URL}`
+const connectionString = `${process.env.DATABASE_URL}`;
 
-const adapter = new PrismaPg({
+const pool = new Pool({
     connectionString,
-    // Accept self-signed SSL certificates from hosted DB providers (Neon, Supabase, etc.)
     ssl: { rejectUnauthorized: false },
-})
-const prisma = new PrismaClient({ adapter })
+});
 
-export { prisma }
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
