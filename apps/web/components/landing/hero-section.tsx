@@ -3,11 +3,9 @@
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface HeroSectionProps {
-  onJoinWaitlist: () => void;
-}
+import Link from 'next/link';
 
-export function HeroSection({ onJoinWaitlist }: HeroSectionProps) {
+export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-amber-50 via-white to-white pt-20 pb-24 md:pt-28 md:pb-32">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-amber-100/40 via-transparent to-transparent" />
@@ -28,22 +26,25 @@ export function HeroSection({ onJoinWaitlist }: HeroSectionProps) {
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Button
-              onClick={onJoinWaitlist}
-              size="lg"
-              className="group h-12 rounded-full bg-gradient-to-r from-amber-600 to-amber-500 px-8 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition-all hover:shadow-xl hover:shadow-amber-500/40"
-            >
-              Join the Waitlist
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <Link href="/signup">
+              <Button
+                size="lg"
+                className="group h-12 rounded-full bg-gradient-to-r from-amber-600 to-amber-500 px-8 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition-all hover:shadow-xl hover:shadow-amber-500/40"
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 rounded-full border-2 border-gray-200 bg-white px-8 text-base font-semibold text-gray-700 transition-all hover:border-amber-300 hover:bg-amber-50"
-            >
-              Watch Demo
-            </Button>
+            <Link href="/signin">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12 rounded-full border-2 border-gray-200 bg-white px-8 text-base font-semibold text-gray-700 transition-all hover:border-amber-300 hover:bg-amber-50"
+              >
+                Sign In
+              </Button>
+            </Link>
           </div>
 
           <div className="mt-12 text-sm text-gray-500">
