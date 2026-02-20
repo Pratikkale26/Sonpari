@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,11 +10,152 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id          String   @id @default(cuid())
-  username    String   @unique
-  password    String
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum GroupRole {
+  HEAD
+  MEMBER
+}
+
+enum TransactionType {
+  SAVE
+  GIFT_SENT
+  GIFT_RECEIVED
+}
+
+enum GiftStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ContributionStatus {
+  PLEDGED
+  PAID
+  FAILED
+}
+
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  phone    String? @unique
+  name     String?
+
+  kycStatus    KycStatus @default(PENDING)
+  kycHash      String?
+  grailUserId  String?
+  solanaWallet String?
+
+  streakCount  Int       @default(0)
+  lastSaveDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kycData           KycData?
+  groupsHeaded      Group[]              @relation("GroupHead")
+  groupMemberships  GroupMember[]
+  savings           SavingsTransaction[]
+  giftsSent         Gift[]               @relation("GiftSender")
+  giftsReceived     Gift[]               @relation("GiftRecipient")
+  giftContributions GiftContribution[]
+  streak            Streak?
+}
+
+model KycData {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  email    String
+  fullName String
+
+  submittedAt DateTime @default(now())
+}
+
+model Group {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  headUserId  String
+  headUser    User    @relation("GroupHead", fields: [headUserId], references: [id])
+  inviteCode  String  @unique
+
+  createdAt DateTime @default(now())
+
+  members GroupMember[]
+  gifts   Gift[]
+}
+
+model GroupMember {
+  groupId  String
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  @@id([groupId, userId])
+}
+
+model SavingsTransaction {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id])
+  grailTxnId     String?
+  amountInr      Decimal
+  goldGrams      Decimal
+  goldPriceAtTxn Decimal
+  type           TransactionType
+
+  createdAt DateTime @default(now())
+}
+
+model Gift {
+  id              String     @id @default(cuid())
+  senderUserId    String
+  senderUser      User       @relation("GiftSender", fields: [senderUserId], references: [id])
+  recipientUserId String?
+  recipientUser   User?      @relation("GiftRecipient", fields: [recipientUserId], references: [id])
+  recipientPhone  String?
+  groupId         String?
+  group           Group?     @relation(fields: [groupId], references: [id])
+  message         String?
+  occasion        String?
+  status          GiftStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  contributions GiftContribution[]
+}
+
+model GiftContribution {
+  id                String             @id @default(cuid())
+  giftId            String
+  gift              Gift               @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  contributorUserId String
+  contributorUser   User               @relation(fields: [contributorUserId], references: [id])
+  amountInr         Decimal
+  goldGrams         Decimal
+  grailTxnId        String?
+  status            ContributionStatus @default(PLEDGED)
+  paidAt            DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+model Streak {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastSaveDate  DateTime?
+
+  updatedAt DateTime @updatedAt
 }
