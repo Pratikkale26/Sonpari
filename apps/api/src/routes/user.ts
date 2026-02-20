@@ -85,6 +85,24 @@ router.post("/signin", async (req, res) => {
   }
 })
 
+router.post("/profile", authMiddleware, async (req, res) => {
+    const id = req.id;
+    const { name, password, phone } = req.body;
+    const user = await prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            name,
+            phone,
+            password
+        }
+    });
+    return res.json({
+        user
+    });
+})
+
 router.get("/", authMiddleware, async (req, res) => {
     const id = req.id;
     const user = await prisma.user.findFirst({
