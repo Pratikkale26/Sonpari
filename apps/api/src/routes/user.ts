@@ -34,7 +34,7 @@ router.post("/signup", async (req, res) => {
     });
 
     res.status(200).json({ message: "Signed up successfully!" });
-  }catch (err) {
+  } catch (err) {
     console.error("Signup error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -42,7 +42,7 @@ router.post("/signup", async (req, res) => {
 
 
 router.post("/signin", async (req, res) => {
-    try {
+  try {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -68,11 +68,11 @@ router.post("/signin", async (req, res) => {
 
     // sign the jwt
     const token = jwt.sign({
-        id: user.id
+      id: user.id
     }, process.env.JWT_SECRET!);
 
     res.json({
-        token: token,
+      token: token,
     });
 
     res.status(200).json({ message: "Signed in successfully!" });
@@ -86,34 +86,34 @@ router.post("/signin", async (req, res) => {
 })
 
 router.post("/profile", authMiddleware, async (req, res) => {
-    const id = req.id;
-    const { name, password, phone } = req.body;
-    const user = await prisma.user.update({
-        where: {
-            id
-        },
-        data: {
-            name,
-            phone,
-            password
-        }
-    });
-    return res.json({
-        user
-    });
+  const id = req.id;
+  const { name, password, phone } = req.body;
+  const user = await prisma.user.update({
+    where: {
+      id
+    },
+    data: {
+      name,
+      phone,
+      password
+    }
+  });
+  return res.json({
+    user
+  });
 })
 
 router.get("/", authMiddleware, async (req, res) => {
-    const id = req.id;
-    const user = await prisma.user.findFirst({
-        where: {
-            id
-        }
-    });
+  const id = req.id;
+  const user = await prisma.user.findFirst({
+    where: {
+      id
+    }
+  });
 
-    return res.json({
-        user
-    });
+  return res.json({
+    user
+  });
 })
 
 export const userRouter = router;
