@@ -117,4 +117,44 @@ router.get("/history", authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/gold/leaderboard — Top 20 users by streak
+router.get("/leaderboard", authMiddleware, async (req: Request, res: Response) => {
+    try {
+        // Get top users with their streaks and total gold
+        const topStreaks = await prisma.streak.findMany({
+            orderBy: { longestStreak: "desc" },
+            take: 20,
+            include: {
+                user: {
+                    select: { id: true, name: true, email: true, streakCount: true },
+                },
+            },
+        });
+
+        // Get total gold per user
+        const totals = await prisma.savingsTransaction.groupBy({
+            by: ["userId"],
+            _sum: { goldGrams: true },
+            where: {
+                userId: { in: topStreaks.map((s: any) => s.userId) },
+            },
+        });
+
+        const totalsMap = Object.fromEntries(totals.map(t => [t.userId, Number(t._sum.goldGrams || 0)]));
+
+        const leaderboard = topStreaks.map((s: any, i: number) => ({
+            rank: i + 1,
+            userId: s.userId,
+            name: s.user.name || s.user.email.split("@")[0],
+            currentStreak: s.user.streakCount,
+            longestStreak: s.longestStreak,
+            totalGoldGrams: totalsMap[s.userId] || 0,
+        }));
+
+        return res.json({ leaderboard });
+    } catch (err) {
+        return res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+});
+
 export { router as goldRouter };

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { prisma } from "db/client";
 import { nanoid } from "nanoid";
+import { sendPushToMany } from "../pushService";
 
 const router = Router();
 
@@ -164,6 +165,19 @@ router.post("/:id/proposals", authMiddleware, async (req: Request, res: Response
                 deadline: deadline ? new Date(deadline) : undefined,
             },
         });
+
+        // Notify all group members about the new proposal
+        const members = await prisma.groupMember.findMany({
+            where: { groupId, userId: { not: userId } }, // exclude creator
+            select: { userId: true },
+        });
+        await sendPushToMany(
+            members.map(m => m.userId),
+            "📢 New Group Proposal!",
+            `A new gold saving proposal has been created in your group.`,
+            `/groups/${groupId}`
+        );
+
         return res.json({ message: "Proposal created!", proposal });
     } catch (err) {
         return res.status(500).json({ message: "Failed to create proposal" });
