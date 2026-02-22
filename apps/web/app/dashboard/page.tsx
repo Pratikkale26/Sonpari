@@ -43,6 +43,23 @@ export default function DashboardPage() {
             setGroups((groupsRes.data.groups || []).slice(0, 3));
 
             if (userRes.data.user.streak) setStreak(userRes.data.user.streak);
+
+            // Request push notification permission and register subscription
+            if ("Notification" in window && "serviceWorker" in navigator && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+                Notification.requestPermission().then(async (permission) => {
+                    if (permission !== "granted") return;
+                    try {
+                        const reg = await navigator.serviceWorker.ready;
+                        const sub = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+                        });
+                        await axios.post(`${API}/api/user/push-subscribe`, { subscription: sub }, { headers });
+                    } catch (e) {
+                        // silently fail — push is a nice-to-have
+                    }
+                });
+            }
         }).catch(() => {
             localStorage.removeItem("token");
             router.push("/signin");

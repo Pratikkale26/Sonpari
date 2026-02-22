@@ -1,9 +1,11 @@
 
 import { Router } from "express";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { prisma } from "db/client";
 import { generateKycHash, createOroUser, signAndSubmit } from "../oroApi";
+import { sendPushToUser } from "../pushService";
 
 const router = Router();
 
@@ -65,10 +67,11 @@ router.post("/signup", async (req, res) => {
       return;
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
         email: email,
-        password: password,
+        password: hashedPassword,
       },
     });
 
@@ -103,7 +106,8 @@ router.post("/signin", async (req, res) => {
       return;
     }
 
-    if (user.password !== password) {
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       res.status(401).json({ message: "Invalid password" });
       return;
     }
@@ -158,5 +162,45 @@ router.get("/", authMiddleware, async (req, res) => {
     user
   });
 })
+
+// POST /api/user/push-subscribe — Save browser push subscription
+router.post("/push-subscribe", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.id!;
+    const { subscription } = req.body;
+    if (!subscription) return res.status(400).json({ message: "Subscription required" });
+    await prisma.user.update({
+      where: { id: userId },
+      data: { pushSubscription: JSON.stringify(subscription) },
+    });
+    return res.json({ message: "Push subscription saved" });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to save subscription" });
+  }
+});
+
+// GET /api/user/badges — Return earned streak badges
+router.get("/badges", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.id!;
+    const streak = await prisma.streak.findUnique({ where: { userId } });
+    const longest = streak?.longestStreak || 0;
+    const MILESTONES = [
+      { streak: 3, name: "Starter", emoji: "🥉" },
+      { streak: 7, name: "Week Warrior", emoji: "🥈" },
+      { streak: 14, name: "Fortnight Saver", emoji: "🥇" },
+      { streak: 30, name: "Diamond Hands", emoji: "💎" },
+      { streak: 60, name: "Gold Legend", emoji: "🌟" },
+      { streak: 100, name: "Sonpari Elite", emoji: "👑" },
+    ];
+    const badges = MILESTONES.map(m => ({
+      ...m,
+      earned: longest >= m.streak,
+    }));
+    return res.json({ badges, longestStreak: longest, currentStreak: streak?.currentStreak || 0 });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to fetch badges" });
+  }
+});
 
 export const userRouter = router;
