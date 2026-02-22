@@ -12,6 +12,8 @@ const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/groups", label: "Groups" },
     { href: "/buy", label: "Buy Gold" },
+    { href: "/leaderboard", label: "🏆 Leaders" },
+    { href: "/badges", label: "🎖️ Badges" },
     { href: "/profile", label: "Profile" },
 ];
 
@@ -94,8 +96,8 @@ export function AppHeader() {
                                 href={link.href}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`px-4 py-3 rounded-xl text-base font-medium transition-all flex items-center ${pathname === link.href
-                                        ? "bg-amber-100/50 text-amber-800"
-                                        : "text-gray-600 hover:bg-amber-50 hover:text-amber-700 active:bg-amber-100"
+                                    ? "bg-amber-100/50 text-amber-800"
+                                    : "text-gray-600 hover:bg-amber-50 hover:text-amber-700 active:bg-amber-100"
                                     }`}
                             >
                                 {link.label}
