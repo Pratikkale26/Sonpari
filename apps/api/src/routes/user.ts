@@ -5,7 +5,6 @@ import bcrypt from "bcryptjs";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { prisma } from "db/client";
 import { generateKycHash, createOroUser, signAndSubmit } from "../oroApi";
-import { sendPushToUser } from "../pushService";
 
 const router = Router();
 
