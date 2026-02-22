@@ -3,7 +3,6 @@ import type { Request, Response } from "express";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { prisma } from "db/client";
 import { nanoid } from "nanoid";
-import { sendPushToMany } from "../pushService";
 
 const router = Router();
 
@@ -166,17 +165,22 @@ router.post("/:id/proposals", authMiddleware, async (req: Request, res: Response
             },
         });
 
-        // Notify all group members about the new proposal
+        // Notify all group members via in-app notification
         const members = await prisma.groupMember.findMany({
-            where: { groupId, userId: { not: userId } }, // exclude creator
+            where: { groupId, userId: { not: userId } },
             select: { userId: true },
         });
-        await sendPushToMany(
-            members.map(m => m.userId),
-            "📢 New Group Proposal!",
-            `A new gold saving proposal has been created in your group.`,
-            `/groups/${groupId}`
-        );
+        if (members.length > 0) {
+            await (prisma as any).notification.createMany({
+                data: members.map((m: any) => ({
+                    userId: m.userId,
+                    type: "GROUP_PROPOSAL",
+                    title: "📢 New Group Proposal!",
+                    body: `An admin created a new gold saving proposal. Add your contribution!`,
+                    link: `/groups/${groupId}`,
+                })),
+            });
+        }
 
         return res.json({ message: "Proposal created!", proposal });
     } catch (err) {

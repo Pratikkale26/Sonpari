@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
@@ -68,6 +69,7 @@ export function AppHeader() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
+                    <NotificationBell />
                     <div className="scale-90 sm:scale-100 origin-right">
                         <WalletMultiButton
                             style={{

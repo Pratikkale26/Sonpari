@@ -4,8 +4,8 @@ import cron from "node-cron";
 import { userRouter } from "./routes/user";
 import { goldRouter } from "./routes/gold";
 import { groupRouter } from "./routes/group";
+import { notificationRouter } from "./routes/notifications";
 import { prisma } from "db/client";
-import { sendPushToUser } from "./pushService";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -39,8 +39,8 @@ app.get("/", (req, res) => { res.send("Sonpari API 🌟"); });
 app.use("/api/user", userRouter);
 app.use("/api/gold", goldRouter);
 app.use("/api/groups", groupRouter);
-
-// Every hour: find users whose last save was 24-34hrs ago → remind before streak breaks
+app.use("/api/notifications", notificationRouter);
+// Every hour: notify users whose last save was 24-34hrs ago (streak at risk)
 cron.schedule("0 * * * *", async () => {
     try {
         const now = new Date();
@@ -55,15 +55,19 @@ cron.schedule("0 * * * *", async () => {
             select: { userId: true, currentStreak: true },
         });
 
-        console.log(`[cron] Sending streak reminders to ${atRiskStreaks.length} users`);
+        console.log(`[cron] Creating streak reminder notifications for ${atRiskStreaks.length} users`);
 
-        for (const s of atRiskStreaks) {
-            await sendPushToUser(
-                s.userId,
-                "⚡ Your streak is at risk!",
-                `Save gold now to keep your ${s.currentStreak} day streak alive! 🔥`,
-                "/buy"
-            );
+        if (atRiskStreaks.length > 0) {
+            await (prisma as any).notification.createMany({
+                data: atRiskStreaks.map((s: any) => ({
+                    userId: s.userId,
+                    type: "STREAK_REMINDER",
+                    title: "⚡ Your streak is at risk!",
+                    body: `Save gold now to keep your ${s.currentStreak}-day streak alive! 🔥`,
+                    link: "/buy",
+                })),
+                skipDuplicates: true,
+            });
         }
     } catch (err) {
         console.error("[cron] Streak reminder error:", err);

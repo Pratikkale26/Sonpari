@@ -9,6 +9,16 @@ const router = Router();
 
 const STREAK_RESET_HOURS = 36;
 
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+const MILESTONE_NAMES: Record<number, { name: string; emoji: string }> = {
+    3: { name: "Starter", emoji: "🥉" },
+    7: { name: "Week Warrior", emoji: "🥈" },
+    14: { name: "Fortnight Saver", emoji: "🥇" },
+    30: { name: "Diamond Hands", emoji: "💎" },
+    60: { name: "Gold Legend", emoji: "🌟" },
+    100: { name: "Sonpari Elite", emoji: "👑" },
+};
+
 async function updateStreak(userId: string) {
     const now = new Date();
     const streak = await prisma.streak.findUnique({ where: { userId } });
@@ -31,6 +41,22 @@ async function updateStreak(userId: string) {
         data: { currentStreak: newCurrent, longestStreak: newLongest, lastSaveDate: now },
     });
     await prisma.user.update({ where: { id: userId }, data: { streakCount: newCurrent, lastSaveDate: now } });
+
+    // Fire milestone notification when a threshold is crossed
+    if (STREAK_MILESTONES.includes(newCurrent)) {
+        const m = MILESTONE_NAMES[newCurrent];
+        if (m) {
+            await (prisma as any).notification.create({
+                data: {
+                    userId,
+                    type: "STREAK_MILESTONE",
+                    title: `${m.emoji} Badge Unlocked: ${m.name}!`,
+                    body: `You've hit a ${newCurrent}-day saving streak. Keep it going!`,
+                    link: "/badges",
+                },
+            });
+        }
+    }
 }
 
 // GET /api/gold/price
