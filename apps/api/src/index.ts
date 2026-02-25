@@ -11,9 +11,8 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 const allowedOrigins = [
     "http://localhost:3000",
-    "http://localhost:3001",
+    "https://www.sonpari.xyz",
     "https://sonpari-web.vercel.app",
-    "https://sonpari.xyz",
     process.env.CORS_ORIGIN
 ].filter(Boolean) as string[];
 
