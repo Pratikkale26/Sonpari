@@ -13,6 +13,7 @@ const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://sonpari-web.vercel.app",
+    "https://sonpari.xyz",
     process.env.CORS_ORIGIN
 ].filter(Boolean) as string[];
 
